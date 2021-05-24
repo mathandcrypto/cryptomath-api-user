@@ -2,16 +2,20 @@ import { Controller } from '@nestjs/common';
 import {
   UserServiceControllerMethods,
   UserServiceController,
+  CreateUserRequest,
+  CreateUserResponse,
   FindOneRequest,
   FindOneResponse,
+  FindByEmailRequest,
+  FindByEmailResponse,
   FindByEmailAndPasswordRequest,
   FindByEmailAndPasswordResponse,
-} from 'cryptomath-api-proto/proto/build/user';
+} from 'cryptomath-api-proto/types/user';
 import { UserService } from './user.service';
 import { EncryptionService } from '@encryption/encryption.service';
 import { UserSerializerService } from './serializers/user.serializer';
 
-@Controller('user')
+@Controller()
 @UserServiceControllerMethods()
 export class UserController implements UserServiceController {
   constructor(
@@ -20,8 +24,60 @@ export class UserController implements UserServiceController {
     private readonly userSerializerService: UserSerializerService,
   ) {}
 
+  async createUser({
+    displayName,
+    email,
+    password,
+  }: CreateUserRequest): Promise<CreateUserResponse> {
+    const [isUserExists] = await this.userService.findByEmail(email);
+
+    if (isUserExists) {
+      return {
+        isUserCreated: false,
+        isUserAlreadyExists: true,
+        createdUser: null,
+      };
+    }
+
+    const [
+      isUserCreated,
+      createUserResponse,
+    ] = await this.userService.createUser(displayName, email, password);
+
+    if (!isUserCreated) {
+      return {
+        isUserCreated: false,
+        isUserAlreadyExists: false,
+        createdUser: null,
+      };
+    }
+
+    const { id, confirmCode } = createUserResponse;
+
+    return {
+      isUserCreated: true,
+      isUserAlreadyExists: false,
+      createdUser: { id, confirmCode },
+    };
+  }
+
   async findOne({ id }: FindOneRequest): Promise<FindOneResponse> {
     const [isUserExists, user] = await this.userService.findOne(id);
+
+    if (!isUserExists) {
+      return { isUserExists: false, user: null };
+    }
+
+    return {
+      isUserExists: true,
+      user: await this.userSerializerService.serialize(user),
+    };
+  }
+
+  async findByEmail({
+    email,
+  }: FindByEmailRequest): Promise<FindByEmailResponse> {
+    const [isUserExists, user] = await this.userService.findByEmail(email);
 
     if (!isUserExists) {
       return { isUserExists: false, user: null };
