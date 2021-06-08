@@ -34,17 +34,21 @@
   "dependencies": {
     "@grpc/proto-loader": "^0.6.1",
     "@nestjs/common": "^7.5.1",
+    "@nestjs/config": "^0.6.3",
     "@nestjs/core": "^7.5.1",
     "@nestjs/microservices": "^7.6.15",
     "@nestjs/platform-express": "^7.5.1",
-    "@prisma/client": "^2.22.1",
+    "@prisma/client": "^2.23.0",
+    "@types/uuid": "^8.3.0",
     "bcrypt": "^5.0.1",
     "cryptomath-api-proto": "github:mathandcrypto/cryptomath-api-proto",
     "dotenv": "^8.2.0",
     "grpc": "^1.24.7",
+    "joi": "^17.4.0",
     "reflect-metadata": "^0.1.13",
     "rimraf": "^3.0.2",
-    "rxjs": "^6.6.3"
+    "rxjs": "^6.6.3",
+    "uuid": "^8.3.2"
   },
   "devDependencies": {
     "@nestjs/cli": "^7.5.1",
@@ -62,7 +66,7 @@
     "eslint-plugin-prettier": "^3.1.4",
     "jest": "^26.6.3",
     "prettier": "^2.1.2",
-    "prisma": "^2.22.1",
+    "prisma": "^2.23.0",
     "supertest": "^6.0.0",
     "ts-jest": "^26.4.3",
     "ts-loader": "^8.0.8",

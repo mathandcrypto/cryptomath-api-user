@@ -7,6 +7,5 @@ export const users: Prisma.UserCreateInput[] = [
   {
     email: 'admin@example.com',
     password: bcrypt.hashSync('admin', salt),
-    salt,
   },
 ];

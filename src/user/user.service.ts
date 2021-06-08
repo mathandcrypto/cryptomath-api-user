@@ -1,12 +1,61 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { User } from '@prisma/client';
+import { User, ConfirmationType } from '@prisma/client';
 import { PrismaService } from '@providers/prisma/prisma.service';
+import { EncryptionService } from '@encryption/encryption.service';
+import { CreateUserResponse } from './interfaces/create-user-response.interface';
+import { UserConfigService } from '@config/user/config.service';
 
 @Injectable()
 export class UserService {
   private readonly logger = new Logger(UserService.name);
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly encryptionService: EncryptionService,
+    private readonly userConfigService: UserConfigService,
+  ) {}
+
+  async createUser(
+    displayName: string,
+    email: string,
+    password: string,
+  ): Promise<[boolean, CreateUserResponse]> {
+    const passwordHash = await this.encryptionService.hash(password);
+    const confirmationSecret = await this.encryptionService.generateConfirmationSecret(
+      email,
+    );
+
+    try {
+      const user = await this.prisma.user.create({
+        data: {
+          displayName,
+          email,
+          password: passwordHash,
+          confirmation: {
+            create: [
+              {
+                type: ConfirmationType.REGISTER,
+                code: confirmationSecret,
+                expiresAt: this.userConfigService.registerConfirmExpirationDate,
+              },
+            ],
+          },
+        },
+      });
+
+      return [
+        true,
+        {
+          id: user.id,
+          confirmCode: confirmationSecret,
+        },
+      ];
+    } catch (error) {
+      this.logger.error(error);
+
+      return [false, null];
+    }
+  }
 
   async findOne(id: number): Promise<[boolean, User]> {
     try {
