@@ -10,10 +10,13 @@ import {
   FindByEmailResponse,
   FindByEmailAndPasswordRequest,
   FindByEmailAndPasswordResponse,
+  FindAvatarRequest,
+  FindAvatarResponse,
 } from 'cryptomath-api-proto/types/user';
 import { UserService } from './user.service';
 import { EncryptionService } from '@encryption/encryption.service';
 import { UserSerializerService } from './serializers/user.serializer';
+import { AvatarSerializerService } from './serializers/avatar.serializer';
 
 @Controller()
 @UserServiceControllerMethods()
@@ -22,6 +25,7 @@ export class UserController implements UserServiceController {
     private readonly userService: UserService,
     private readonly encryptionService: EncryptionService,
     private readonly userSerializerService: UserSerializerService,
+    private readonly avatarSerializerService: AvatarSerializerService,
   ) {}
 
   async createUser({
@@ -112,6 +116,22 @@ export class UserController implements UserServiceController {
       isUserExists: true,
       isValidPassword: true,
       user: await this.userSerializerService.serialize(user),
+    };
+  }
+
+  async findAvatar({ userId }: FindAvatarRequest): Promise<FindAvatarResponse> {
+    const [isAvatarExists, avatar] = await this.userService.findAvatar(userId);
+
+    if (!isAvatarExists) {
+      return {
+        isAvatarExists: false,
+        avatar: null,
+      };
+    }
+
+    return {
+      isAvatarExists: true,
+      avatar: await this.avatarSerializerService.serialize(avatar),
     };
   }
 }

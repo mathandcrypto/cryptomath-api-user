@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { User, ConfirmationType } from '@prisma/client';
+import { User, Avatar, ConfirmationType } from '@prisma/client';
 import { PrismaService } from '@providers/prisma/prisma.service';
 import { EncryptionService } from '@encryption/encryption.service';
 import { CreateUserResponse } from './interfaces/create-user-response.interface';
@@ -59,7 +59,9 @@ export class UserService {
 
   async findOne(id: number): Promise<[boolean, User]> {
     try {
-      const user = await this.prisma.user.findUnique({ where: { id } });
+      const user = await this.prisma.user.findUnique({
+        where: { id },
+      });
 
       if (!user) {
         return [false, null];
@@ -75,13 +77,31 @@ export class UserService {
 
   async findByEmail(email: string): Promise<[boolean, User]> {
     try {
-      const user = await this.prisma.user.findUnique({ where: { email } });
+      const user = await this.prisma.user.findUnique({
+        where: { email },
+      });
 
       if (!user) {
         return [false, null];
       }
 
       return [true, user];
+    } catch (error) {
+      this.logger.error(error);
+
+      return [false, null];
+    }
+  }
+
+  async findAvatar(userId: number): Promise<[boolean, Avatar]> {
+    try {
+      const avatar = await this.prisma.avatar.findFirst({ where: { userId } });
+
+      if (!avatar) {
+        return [false, null];
+      }
+
+      return [true, avatar];
     } catch (error) {
       this.logger.error(error);
 

@@ -12,7 +12,16 @@ model User {
     email String    @unique
     password String
     displayName String?
+    avatar Avatar?
     confirmation Confirmation[]
+}
+
+model Avatar {
+    id  Int @default(autoincrement()) @id
+    key String @unique
+    url String
+    user    User   @relation(fields: [userId], references: [id])
+    userId  Int
 }
 
 enum ConfirmationType {
