@@ -11,15 +11,32 @@ model User {
     id  Int @default(autoincrement()) @id
     email String    @unique
     password String
-    displayName String?
+    displayName String
     avatar Avatar?
+    profile Profile?
     confirmation Confirmation[]
+    role Role @default(USER)
+}
+
+enum Role {
+    USER
+    MODERATOR
+    ADMIN
 }
 
 model Avatar {
     id  Int @default(autoincrement()) @id
     key String @unique
     url String
+    user    User   @relation(fields: [userId], references: [id])
+    userId  Int
+}
+
+model Profile {
+    id  Int @default(autoincrement()) @id
+    bio String
+    url String
+    location String
     user    User   @relation(fields: [userId], references: [id])
     userId  Int
 }

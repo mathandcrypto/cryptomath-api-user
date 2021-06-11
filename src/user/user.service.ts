@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { User, Avatar, ConfirmationType } from '@prisma/client';
+import { User, Avatar, Profile, ConfirmationType } from '@prisma/client';
 import { PrismaService } from '@providers/prisma/prisma.service';
 import { EncryptionService } from '@encryption/encryption.service';
 import { CreateUserResponse } from './interfaces/create-user-response.interface';
@@ -102,6 +102,24 @@ export class UserService {
       }
 
       return [true, avatar];
+    } catch (error) {
+      this.logger.error(error);
+
+      return [false, null];
+    }
+  }
+
+  async findProfile(userId: number): Promise<[boolean, Profile]> {
+    try {
+      const profile = await this.prisma.profile.findFirst({
+        where: { userId },
+      });
+
+      if (!profile) {
+        return [false, null];
+      }
+
+      return [true, profile];
     } catch (error) {
       this.logger.error(error);
 
