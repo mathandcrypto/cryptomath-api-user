@@ -10,6 +10,8 @@ export class AvatarSerializerService extends BaseSerializerService<
 > {
   async serialize(avatar: AvatarPrisma): Promise<AvatarProto> {
     return {
+      id: avatar.id,
+      key: avatar.key,
       url: avatar.url,
     };
   }

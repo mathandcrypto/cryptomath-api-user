@@ -3,6 +3,7 @@ import { User, Avatar, Profile, ConfirmationType } from '@prisma/client';
 import { PrismaService } from '@providers/prisma/prisma.service';
 import { EncryptionService } from '@encryption/encryption.service';
 import { CreateUserResponse } from './interfaces/create-user-response.interface';
+import { CreateAvatarResponse } from './interfaces/create-avatar-response.interface';
 import { UserConfigService } from '@config/user/config.service';
 
 @Injectable()
@@ -102,6 +103,53 @@ export class UserService {
       }
 
       return [true, avatar];
+    } catch (error) {
+      this.logger.error(error);
+
+      return [false, null];
+    }
+  }
+
+  async createAvatar(
+    userId: number,
+    key: string,
+    url: string,
+  ): Promise<[boolean, CreateAvatarResponse]> {
+    try {
+      const avatar = await this.prisma.avatar.create({
+        data: {
+          key,
+          url,
+          userId,
+        },
+      });
+
+      return [true, { id: avatar.id }];
+    } catch (error) {
+      this.logger.error(error);
+
+      return [false, null];
+    }
+  }
+
+  async deleteAvatar(
+    userId: number,
+    avatarId: number,
+  ): Promise<[boolean, Avatar]> {
+    try {
+      const avatar = await this.prisma.avatar.findFirst({
+        where: { AND: [{ id: avatarId }, { userId }] },
+      });
+
+      if (!avatar) {
+        return [false, null];
+      }
+
+      const deletedAvatar = await this.prisma.avatar.delete({
+        where: { id: avatarId },
+      });
+
+      return [true, deletedAvatar];
     } catch (error) {
       this.logger.error(error);
 

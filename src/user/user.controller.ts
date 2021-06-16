@@ -12,6 +12,10 @@ import {
   FindByEmailAndPasswordResponse,
   FindAvatarRequest,
   FindAvatarResponse,
+  CreateAvatarRequest,
+  CreateAvatarResponse,
+  DeleteAvatarRequest,
+  DeleteAvatarResponse,
   FindProfileRequest,
   FindProfileResponse,
 } from 'cryptomath-api-proto/types/user';
@@ -137,6 +141,59 @@ export class UserController implements UserServiceController {
       isAvatarExists: true,
       avatar: await this.avatarSerializerService.serialize(avatar),
     };
+  }
+
+  async createAvatar({
+    userId,
+    key,
+    url,
+  }: CreateAvatarRequest): Promise<CreateAvatarResponse> {
+    const [isAvatarExists] = await this.userService.findAvatar(userId);
+
+    if (isAvatarExists) {
+      return {
+        isAvatarCreated: false,
+        isAvatarAlreadyExists: true,
+        avatar: null,
+      };
+    }
+
+    const [
+      isAvatarCreated,
+      createAvatarResponse,
+    ] = await this.userService.createAvatar(userId, key, url);
+
+    if (!isAvatarCreated) {
+      return {
+        isAvatarCreated: false,
+        isAvatarAlreadyExists: false,
+        avatar: null,
+      };
+    }
+
+    const { id } = createAvatarResponse;
+
+    return {
+      isAvatarCreated: true,
+      isAvatarAlreadyExists: false,
+      avatar: {
+        id,
+        key,
+        url,
+      },
+    };
+  }
+
+  async deleteAvatar({
+    userId,
+    avatarId,
+  }: DeleteAvatarRequest): Promise<DeleteAvatarResponse> {
+    const [isAvatarDeleted, avatar] = await this.userService.deleteAvatar(
+      userId,
+      avatarId,
+    );
+
+    return { isAvatarDeleted, avatar };
   }
 
   async findProfile({
