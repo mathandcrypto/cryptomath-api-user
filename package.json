@@ -42,6 +42,7 @@
     "@types/uuid": "^8.3.0",
     "bcrypt": "^5.0.1",
     "cryptomath-api-proto": "file:../cryptomath-api-proto",
+    "date-fns": "^2.22.1",
     "dotenv": "^8.2.0",
     "grpc": "^1.24.7",
     "joi": "^17.4.0",

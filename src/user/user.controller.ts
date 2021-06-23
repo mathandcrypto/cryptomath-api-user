@@ -10,6 +10,8 @@ import {
   FindByEmailResponse,
   FindByEmailAndPasswordRequest,
   FindByEmailAndPasswordResponse,
+  FindFromListRequest,
+  FindFromListResponse,
   FindAvatarRequest,
   FindAvatarResponse,
   CreateAvatarRequest,
@@ -18,7 +20,9 @@ import {
   DeleteAvatarResponse,
   FindProfileRequest,
   FindProfileResponse,
+  User as UserProto,
 } from 'cryptomath-api-proto/types/user';
+import { User } from './interfaces/user.interface';
 import { UserService } from './user.service';
 import { EncryptionService } from '@encryption/encryption.service';
 import { UserSerializerService } from './serializers/user.serializer';
@@ -124,6 +128,41 @@ export class UserController implements UserServiceController {
       isUserExists: true,
       isValidPassword: true,
       user: await this.userSerializerService.serialize(user),
+    };
+  }
+
+  private async prepareUsersMap(
+    users: User[],
+  ): Promise<{ [key: number]: UserProto }> {
+    const usersMap = {} as { [key: number]: UserProto };
+    const serializedUsers = await Promise.all(
+      users.map(
+        async (user) => await this.userSerializerService.serialize(user),
+      ),
+    );
+
+    serializedUsers.forEach((user) => {
+      usersMap[user.id] = user;
+    });
+
+    return usersMap;
+  }
+
+  async findFromList({
+    idList,
+  }: FindFromListRequest): Promise<FindFromListResponse> {
+    const [isUsersFound, users] = await this.userService.findFromList(idList);
+
+    if (!isUsersFound) {
+      return {
+        isUsersFound: false,
+        users: {},
+      };
+    }
+
+    return {
+      isUsersFound: true,
+      users: await this.prepareUsersMap(users),
     };
   }
 

@@ -1,9 +1,10 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { User, Avatar, Profile, ConfirmationType } from '@prisma/client';
+import { User } from './interfaces/user.interface';
+import { Avatar, Profile, ConfirmationType } from '@prisma/client';
 import { PrismaService } from '@providers/prisma/prisma.service';
 import { EncryptionService } from '@encryption/encryption.service';
-import { CreateUserResponse } from './interfaces/create-user-response.interface';
-import { CreateAvatarResponse } from './interfaces/create-avatar-response.interface';
+import { CreatedUser } from './interfaces/created-user.interface';
+import { CreatedAvatar } from './interfaces/created-avatar.interface';
 import { UserConfigService } from '@config/user/config.service';
 
 @Injectable()
@@ -20,7 +21,7 @@ export class UserService {
     displayName: string,
     email: string,
     password: string,
-  ): Promise<[boolean, CreateUserResponse]> {
+  ): Promise<[boolean, CreatedUser]> {
     const passwordHash = await this.encryptionService.hash(password);
     const confirmationSecret = await this.encryptionService.generateConfirmationSecret(
       email,
@@ -32,7 +33,7 @@ export class UserService {
           displayName,
           email,
           password: passwordHash,
-          confirmation: {
+          confirmations: {
             create: [
               {
                 type: ConfirmationType.REGISTER,
@@ -62,6 +63,7 @@ export class UserService {
     try {
       const user = await this.prisma.user.findUnique({
         where: { id },
+        include: { avatar: true },
       });
 
       if (!user) {
@@ -80,6 +82,7 @@ export class UserService {
     try {
       const user = await this.prisma.user.findUnique({
         where: { email },
+        include: { avatar: true },
       });
 
       if (!user) {
@@ -91,6 +94,23 @@ export class UserService {
       this.logger.error(error);
 
       return [false, null];
+    }
+  }
+
+  async findFromList(userIds: number[]): Promise<[boolean, User[]]> {
+    try {
+      const users = await this.prisma.user.findMany({
+        where: { id: { in: userIds } },
+        include: {
+          avatar: true,
+        },
+      });
+
+      return [true, users];
+    } catch (error) {
+      this.logger.error(error);
+
+      return [false, []];
     }
   }
 
@@ -114,7 +134,7 @@ export class UserService {
     userId: number,
     key: string,
     url: string,
-  ): Promise<[boolean, CreateAvatarResponse]> {
+  ): Promise<[boolean, CreatedAvatar]> {
     try {
       const avatar = await this.prisma.avatar.create({
         data: {
