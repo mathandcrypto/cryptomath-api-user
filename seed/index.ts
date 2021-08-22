@@ -1,11 +1,12 @@
 import { PrismaClient } from '@prisma/client';
 import * as dotenv from 'dotenv';
-import { users } from './users';
+import { users } from './data/users';
+
+dotenv.config();
 
 const prisma = new PrismaClient();
 
 async function main() {
-  dotenv.config();
   console.log(`Start seeding user...`);
 
   await Promise.all(

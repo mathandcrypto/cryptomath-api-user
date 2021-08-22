@@ -11,8 +11,38 @@ model User {
     id  Int @default(autoincrement()) @id
     email String    @unique
     password String
-    displayName String?
-    confirmation Confirmation[]
+    displayName String
+    avatar Avatar?
+    profile Profile?
+    confirmations Confirmation[]
+    reviews Review[]
+    reviewers Reviewer[]
+    role Role @default(USER)
+    reputation Int  @default(0)
+    createdAt   DateTime @default(now())
+}
+
+enum Role {
+    USER
+    MODERATOR
+    ADMIN
+}
+
+model Avatar {
+    id  Int @default(autoincrement()) @id
+    key String @unique
+    url String
+    user    User   @relation(fields: [userId], references: [id])
+    userId  Int
+}
+
+model Profile {
+    id  Int @default(autoincrement()) @id
+    bio String
+    url String
+    location String
+    user    User   @relation(fields: [userId], references: [id])
+    userId  Int
 }
 
 enum ConfirmationType {
@@ -29,4 +59,30 @@ model Confirmation {
     expiresAt   DateTime
     user    User   @relation(fields: [userId], references: [id])
     userId  Int
+}
+
+enum ReviewGrade {
+    EXCELLENT
+    POSITIVE
+    NEGATIVE
+    HORRIBLE
+}
+
+model Review {
+    id  Int @default(autoincrement()) @id
+    user    User   @relation(fields: [userId], references: [id])
+    userId  Int
+    grade ReviewGrade
+    reviewer    Reviewer?
+    comment String
+    anonymous   Boolean @default(false)
+    createdAt   DateTime @default(now())
+    updatedAt   DateTime @default(now())
+}
+
+model Reviewer {
+    user    User   @relation(fields: [userId], references: [id])
+    userId  Int
+    review  Review @relation(fields: [reviewId], references: [id])
+    reviewId    Int @id
 }

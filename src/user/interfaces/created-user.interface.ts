@@ -1,4 +1,4 @@
-export interface CreateUserResponse {
+export interface CreatedUser {
   id: number;
   confirmCode: string;
 }

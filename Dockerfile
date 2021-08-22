@@ -1,26 +1,26 @@
-FROM node:12 AS development
+FROM node:12-alpine AS builder
 
 WORKDIR var/www/app
 
 COPY package*.json ./
 COPY prisma ./prisma/
 
-RUN npm install --only=development
+RUN npm install
 
 COPY . .
 
 RUN npm run build
 
-FROM node:12 as production
+FROM node:12-alpine as production
 
 ARG NODE_ENV=production
 ENV NODE_ENV=${NODE_ENV}
 
 WORKDIR /usr/www/app
 
-COPY --from=development /var/www/app/node_modules ./node_modules
-COPY --from=development  /var/www/app/package*.json ./
-COPY --from=development  /var/www/app/dist ./dist
+COPY --from=builder /usr/src/app/node_modules ./node_modules
+COPY --from=builder  /usr/src/app/package*.json ./
+COPY --from=builder /usr/src/app/dist ./dist
+COPY . .
 
-EXPOSE 3000
 CMD [ "npm", "run", "start:prod" ]

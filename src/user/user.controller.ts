@@ -10,10 +10,24 @@ import {
   FindByEmailResponse,
   FindByEmailAndPasswordRequest,
   FindByEmailAndPasswordResponse,
-} from 'cryptomath-api-proto/types/user';
+  FindFromListRequest,
+  FindFromListResponse,
+  FindAvatarRequest,
+  FindAvatarResponse,
+  CreateAvatarRequest,
+  CreateAvatarResponse,
+  DeleteAvatarRequest,
+  DeleteAvatarResponse,
+  FindProfileRequest,
+  FindProfileResponse,
+  User as UserProto,
+} from '@cryptomath/cryptomath-api-proto/types/user';
+import { User } from './interfaces/user.interface';
 import { UserService } from './user.service';
-import { EncryptionService } from '@encryption/encryption.service';
+import { EncryptionService } from '@user/encryption.service';
 import { UserSerializerService } from './serializers/user.serializer';
+import { AvatarSerializerService } from './serializers/avatar.serializer';
+import { ProfileSerializerService } from './serializers/profile.serializer';
 
 @Controller()
 @UserServiceControllerMethods()
@@ -22,6 +36,8 @@ export class UserController implements UserServiceController {
     private readonly userService: UserService,
     private readonly encryptionService: EncryptionService,
     private readonly userSerializerService: UserSerializerService,
+    private readonly avatarSerializerService: AvatarSerializerService,
+    private readonly profileSerializerService: ProfileSerializerService,
   ) {}
 
   async createUser({
@@ -112,6 +128,128 @@ export class UserController implements UserServiceController {
       isUserExists: true,
       isValidPassword: true,
       user: await this.userSerializerService.serialize(user),
+    };
+  }
+
+  private async prepareUsersMap(
+    users: User[],
+  ): Promise<{ [key: number]: UserProto }> {
+    const usersMap = {} as { [key: number]: UserProto };
+    const serializedUsers = await Promise.all(
+      users.map((user) => this.userSerializerService.serialize(user)),
+    );
+
+    serializedUsers.forEach((user) => {
+      usersMap[user.id] = user;
+    });
+
+    return usersMap;
+  }
+
+  async findFromList({
+    idList,
+  }: FindFromListRequest): Promise<FindFromListResponse> {
+    const [isUsersFound, users] = await this.userService.findFromList(idList);
+
+    if (!isUsersFound) {
+      return {
+        isUsersFound: false,
+        users: {},
+      };
+    }
+
+    return {
+      isUsersFound: true,
+      users: await this.prepareUsersMap(users),
+    };
+  }
+
+  async findAvatar({ userId }: FindAvatarRequest): Promise<FindAvatarResponse> {
+    const [isAvatarExists, avatar] = await this.userService.findAvatar(userId);
+
+    if (!isAvatarExists) {
+      return {
+        isAvatarExists: false,
+        avatar: null,
+      };
+    }
+
+    return {
+      isAvatarExists: true,
+      avatar: await this.avatarSerializerService.serialize(avatar),
+    };
+  }
+
+  async createAvatar({
+    userId,
+    key,
+    url,
+  }: CreateAvatarRequest): Promise<CreateAvatarResponse> {
+    const [isAvatarExists] = await this.userService.findAvatar(userId);
+
+    if (isAvatarExists) {
+      return {
+        isAvatarCreated: false,
+        isAvatarAlreadyExists: true,
+        avatar: null,
+      };
+    }
+
+    const [
+      isAvatarCreated,
+      createAvatarResponse,
+    ] = await this.userService.createAvatar(userId, key, url);
+
+    if (!isAvatarCreated) {
+      return {
+        isAvatarCreated: false,
+        isAvatarAlreadyExists: false,
+        avatar: null,
+      };
+    }
+
+    const { id } = createAvatarResponse;
+
+    return {
+      isAvatarCreated: true,
+      isAvatarAlreadyExists: false,
+      avatar: {
+        id,
+        key,
+        url,
+      },
+    };
+  }
+
+  async deleteAvatar({
+    userId,
+    avatarId,
+  }: DeleteAvatarRequest): Promise<DeleteAvatarResponse> {
+    const [isAvatarDeleted, avatar] = await this.userService.deleteAvatar(
+      userId,
+      avatarId,
+    );
+
+    return { isAvatarDeleted, avatar };
+  }
+
+  async findProfile({
+    userId,
+  }: FindProfileRequest): Promise<FindProfileResponse> {
+    const [isProfileExists, profile] = await this.userService.findProfile(
+      userId,
+    );
+
+    if (!isProfileExists) {
+      return {
+        isProfileExists: false,
+        profile: null,
+      };
+    }
+
+    return {
+      isProfileExists: true,
+      profile: await this.profileSerializerService.serialize(profile),
     };
   }
 }
