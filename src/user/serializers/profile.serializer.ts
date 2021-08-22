@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { BaseSerializerService } from '@common/serializers/base.serializer';
 import { Profile as ProfilePrisma } from '@prisma/client';
-import { Profile as ProfileProto } from 'cryptomath-api-proto/types/user';
+import { Profile as ProfileProto } from '@cryptomath/cryptomath-api-proto/types/user';
 
 @Injectable()
 export class ProfileSerializerService extends BaseSerializerService<

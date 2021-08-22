@@ -2,7 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { User } from './interfaces/user.interface';
 import { Avatar, Profile, ConfirmationType } from '@prisma/client';
 import { PrismaService } from '@providers/prisma/prisma.service';
-import { EncryptionService } from '@encryption/encryption.service';
+import { EncryptionService } from '@user/encryption.service';
 import { CreatedUser } from './interfaces/created-user.interface';
 import { CreatedAvatar } from './interfaces/created-avatar.interface';
 import { UserConfigService } from '@config/user/config.service';

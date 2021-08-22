@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { BaseSerializerService } from '@common/serializers/base.serializer';
 import { Avatar as AvatarPrisma } from '@prisma/client';
-import { Avatar as AvatarProto } from 'cryptomath-api-proto/types/user';
+import { Avatar as AvatarProto } from '@cryptomath/cryptomath-api-proto/types/user';
 
 @Injectable()
 export class AvatarSerializerService extends BaseSerializerService<

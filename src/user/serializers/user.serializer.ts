@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { BaseSerializerService } from '@common/serializers/base.serializer';
 import { User } from '../interfaces/user.interface';
-import { User as UserProto } from 'cryptomath-api-proto/types/user';
+import { User as UserProto } from '@cryptomath/cryptomath-api-proto/types/user';
 import { RoleSerializerService } from './role.serializer';
 import { AvatarSerializerService } from './avatar.serializer';
 import { getUnixTime } from 'date-fns';

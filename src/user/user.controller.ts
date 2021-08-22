@@ -21,10 +21,10 @@ import {
   FindProfileRequest,
   FindProfileResponse,
   User as UserProto,
-} from 'cryptomath-api-proto/types/user';
+} from '@cryptomath/cryptomath-api-proto/types/user';
 import { User } from './interfaces/user.interface';
 import { UserService } from './user.service';
-import { EncryptionService } from '@encryption/encryption.service';
+import { EncryptionService } from '@user/encryption.service';
 import { UserSerializerService } from './serializers/user.serializer';
 import { AvatarSerializerService } from './serializers/avatar.serializer';
 import { ProfileSerializerService } from './serializers/profile.serializer';
@@ -136,9 +136,7 @@ export class UserController implements UserServiceController {
   ): Promise<{ [key: number]: UserProto }> {
     const usersMap = {} as { [key: number]: UserProto };
     const serializedUsers = await Promise.all(
-      users.map(
-        async (user) => await this.userSerializerService.serialize(user),
-      ),
+      users.map((user) => this.userSerializerService.serialize(user)),
     );
 
     serializedUsers.forEach((user) => {
