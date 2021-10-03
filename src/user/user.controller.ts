@@ -55,10 +55,8 @@ export class UserController implements UserServiceController {
       };
     }
 
-    const [
-      isUserCreated,
-      createUserResponse,
-    ] = await this.userService.createUser(displayName, email, password);
+    const [isUserCreated, createUserResponse] =
+      await this.userService.createUser(displayName, email, password);
 
     if (!isUserCreated) {
       return {
@@ -195,10 +193,11 @@ export class UserController implements UserServiceController {
       };
     }
 
-    const [
-      isAvatarCreated,
-      createAvatarResponse,
-    ] = await this.userService.createAvatar(userId, key, url);
+    const [isAvatarCreated, avatarId] = await this.userService.createAvatar(
+      userId,
+      key,
+      url,
+    );
 
     if (!isAvatarCreated) {
       return {
@@ -208,13 +207,11 @@ export class UserController implements UserServiceController {
       };
     }
 
-    const { id } = createAvatarResponse;
-
     return {
       isAvatarCreated: true,
       isAvatarAlreadyExists: false,
       avatar: {
-        id,
+        id: avatarId,
         key,
         url,
       },
@@ -230,7 +227,17 @@ export class UserController implements UserServiceController {
       avatarId,
     );
 
-    return { isAvatarDeleted, avatar };
+    if (!isAvatarDeleted) {
+      return {
+        isAvatarDeleted: false,
+        avatar: null,
+      };
+    }
+
+    return {
+      isAvatarDeleted: true,
+      avatar: await this.avatarSerializerService.serialize(avatar),
+    };
   }
 
   async findProfile({

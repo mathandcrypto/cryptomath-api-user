@@ -4,7 +4,6 @@ import { Avatar, Profile, ConfirmationType } from '@prisma/client';
 import { PrismaService } from '@providers/prisma/prisma.service';
 import { EncryptionService } from '@user/encryption.service';
 import { CreatedUser } from './interfaces/created-user.interface';
-import { CreatedAvatar } from './interfaces/created-avatar.interface';
 import { UserConfigService } from '@config/user/config.service';
 
 @Injectable()
@@ -23,9 +22,8 @@ export class UserService {
     password: string,
   ): Promise<[boolean, CreatedUser]> {
     const passwordHash = await this.encryptionService.hash(password);
-    const confirmationSecret = await this.encryptionService.generateConfirmationSecret(
-      email,
-    );
+    const confirmationSecret =
+      await this.encryptionService.generateConfirmationSecret(email);
 
     try {
       const user = await this.prisma.user.create({
@@ -134,7 +132,7 @@ export class UserService {
     userId: number,
     key: string,
     url: string,
-  ): Promise<[boolean, CreatedAvatar]> {
+  ): Promise<[boolean, number]> {
     try {
       const avatar = await this.prisma.avatar.create({
         data: {
@@ -144,11 +142,11 @@ export class UserService {
         },
       });
 
-      return [true, { id: avatar.id }];
+      return [true, avatar.id];
     } catch (error) {
       this.logger.error(error);
 
-      return [false, null];
+      return [false, -1];
     }
   }
 
@@ -157,19 +155,19 @@ export class UserService {
     avatarId: number,
   ): Promise<[boolean, Avatar]> {
     try {
-      const avatar = await this.prisma.avatar.findFirst({
-        where: { AND: [{ id: avatarId }, { userId }] },
-      });
-
-      if (!avatar) {
-        return [false, null];
-      }
-
-      const deletedAvatar = await this.prisma.avatar.delete({
+      const avatar = await this.prisma.avatar.findUnique({
         where: { id: avatarId },
       });
 
-      return [true, deletedAvatar];
+      if (!avatar || avatar.userId !== userId) {
+        return [false, null];
+      }
+
+      await this.prisma.avatar.delete({
+        where: { id: avatarId },
+      });
+
+      return [true, avatar];
     } catch (error) {
       this.logger.error(error);
 
